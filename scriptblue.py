@@ -1,5 +1,5 @@
 from random import randint
-def CoordStr(x,y):
+def CoordStr(x,y): #assumes x,y<100
     if x<10:
         xs='0'+str(x)
     else:
@@ -41,7 +41,7 @@ def ActBase(base):
     All=base.GetListOfSignals()
     for L in All:
         if L[0]=='b':
-            base.SetYourSignal(L[:?]+base.GetYourSignal()[?:])
+            base.SetYourSignal(L[:5]+base.GetYourSignal()[5:]) #checkforerrors
 
     enemies_near=(base.investigate_up()=='enemy')or(base.investigate_down()=='enemy')or(base.investigate_left()=='enemy')or(base.investigate_right()=='enemy')or(base.investigate_ne()=='enemy')or(base.investigate_nw()=='enemy')or(base.investigate_se()=='enemy')or(base.investigate_sw()=='enemy')
     if enemies_near:
