@@ -21,22 +21,18 @@ def ActRobot(robot):
 
 
 def ActBase(base):
-
+    ##initialisation step
     if base.GetYourSignal()=='':
         x_b,y_b=base.GetPosition()
         x_est=base.GetDimensionX()-x_b  # A good guess for expected location of opponent base
         y_est=base.GetDimensionX()-y_b  # Could help with finding enemy base quickly
         base.SetYourSignal('~'+CoordStr(x_est,y_est))#optimise later
-
-    #count of classes???
-
-
-    if base.GetElixir()> 600:
+        #botcreation
         while base.GetElixir() > 1500:
             base.create_robot('m')  # mixed capability ->depends
         while base.GetElixir() > 1000:
             base.create_robot('a')  # attack capability ->more freedom of movement and attack
-        while base.GetElixir() > 600:
+        while base.GetElixir() > 500:
             base.create_robot('d')  # defence capability ->more conservative with movement
 
     All=base.GetListOfSignals()
@@ -44,10 +40,10 @@ def ActBase(base):
         if len(L)>0 and L[0]=='b':
             base.SetYourSignal(L[:5]+base.GetYourSignal()[5:]) #checkforerrors
 
-    def enemies_near():
+    def enemies_near(): #??
         return (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
     if enemies_near():
-        base.DeployVirus(800)
+        base.DeployVirus(800) #100 per block
         base.SetYourSignal(base.GetYourSignal()+'h'+str(enemies_near))
 
     ##add the defense/attack mechn!!
