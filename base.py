@@ -62,7 +62,7 @@ class Base():
     def GetListOfSignals(self):
         res = []
         for x in self.__robot_list:
-            res.append(x.__Signal)
+            res.append(x._Robot__Signal)
         return res
 
     def addResource(self, v):
@@ -297,7 +297,7 @@ class Base():
             return "blank"
 
     def investigate_sw(self):
-        if self.rect.x == 0:
+        if self.rect.x == 0 or self.rect.y==780:
             return "wall"
         elif self.__robot_map[self.rect.y//20 + 1][self.rect.x//20 - 1] == 1 :
             if self.type == "red":
@@ -327,7 +327,7 @@ class Base():
     def GetYourSignal(self):
         return self.__Signal
     
-    def SetYoutSignal(self, s):
+    def SetYourSignal(self, s):
         str = 'wncc'
         if type(s)!=type(str) or len(s) > 20:
             return
@@ -343,10 +343,10 @@ class Base():
         return (self.rect.x//20,self.rect.y//20)
     
     def GetDimensionX(self):
-        return self.__myGame._Game_dim[0]
+        return self.__myGame._Game__dim[0]
 
     def GetDimensionY(self):
-        return self.__myGame._Game_dim[1]
+        return self.__myGame._Game__dim[1]
 
     def DeployVirus(self, v):
         if v > self.__TotalVirus or v <= 0:
