@@ -48,8 +48,8 @@ class Game():
         # 3 means base for team red
         # 4 means base for team blue
 
-        self.__redbase = Base(self.screen, 180, 180, 'red', self.__redbots, self.__robots,self)
-        self.__bluebase = Base(self.screen, 580, 580, 'blue', self.__bluebots, self.__robots,self)
+        self.__redbase = Base(self.screen, 180, 380, 'red', self.__redbots, self.__robots,self)
+        self.__bluebase = Base(self.screen, 580, 380, 'blue', self.__bluebots, self.__robots,self)
         self.__PositionToRobot[(9,19)] = {self.__redbase:True}
         self.__PositionToRobot[(29,19)] = {self.__bluebase:True}
         self.update_score()

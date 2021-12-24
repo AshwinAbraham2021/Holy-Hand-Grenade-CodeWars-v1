@@ -27,19 +27,22 @@ def VirusPolicy(robot,typ):
 		if viral>4000:
 			robot.DeployVirus(4000)
 		else:
-			robot.DeployVirus(viral/2)
-	#elif 'enemy' in locale:
-		#if typ=='a':
+			robot.DeployVirus(viral/2) #alter
+	elif 'enemy' in locale:
+		numen=locale.count('enemy')
+		if typ=='a'or typ=='m':
+			if numen>2:
+				robot.DeployVirus(800)	#alter the values
+			else:
+				robot.DeployVirus(320)	#alter the values
 			
 			
-	
-	
-	
+
 	
 def FirstPhaseM(robot,typ):
 	x_r,y_r=robot.GetPosition()
 	#insert base finding code
-	if robot.investigate_up()=='enemy-base':
+	if robot.investigate_up()=='enemy-base': #rem--chk 
 		robot.setSignal('b'+CoordStr(x_r,y_r-1))       
 	elif robot.investigate_down()=='enemy-base':
 		robot.setSignal('b'+CoordStr(x_r,y_r+1))       
@@ -60,18 +63,18 @@ def FirstPhaseM(robot,typ):
 	baes=robot.GetCurrentBaseSignal()
 	x_r,y_r=robot.GetPosition()
 	
-	x_d=int(baes[1:3])
+	x_d=int(baes[1:3]) #destination estimation
 	y_d=int(baes[3:5])
-	x_b=int(baes[6:8])
+	x_b=int(baes[6:8]) #home
 	y_b=int(baes[8:10])
 	
 	X = robot.GetDimensionX()
 	Y = robot.GetDimensionY()
 
-	pstring='1234'
-	if typ=='a': #direct scouts
+	pstring='1234' 
+	if typ=='a': #direct scouts  
 		if x_r<x_d:
-			pstring+='2'*(x_d-x_r)
+			pstring+='2'*(x_d-x_r) 
 		else:
 			pstring+='4'*(x_r-x_d)
 		if y_r>y_d:
@@ -79,17 +82,18 @@ def FirstPhaseM(robot,typ):
 		else:
 			pstring+='3'*(y_d-y_r)
 		return int(choice(pstring))
-	elif typ=='m': #scanners go on..dw
-		i=int(robot.GetInitialSignal()[1:])//2
+	elif typ=='m': #scanners go on
+		i=int(robot.GetInitialSignal()[1:])
 		# 1 up, 2 right, 3 down, 4 left
 
 		if i%2 == 0:    #Clockwise scanners
+			i = i//2
 			if (x_b<X//2 and y_b<Y//2):
 				if (x_r==x_b and not(y_r==2+3*i)):
 					if (y_r<2+3*i):
 						return 1	#move up
 					else:
-					 	return 3	#move down
+						return 3	#move down
 				elif (y_r==2+3*i and x_r<X+2-3*i):
 					return 2     #move right
 				elif (x_r==X+2-3*i):
@@ -100,7 +104,7 @@ def FirstPhaseM(robot,typ):
 					if (x_r<X+2-3*i):
 						return 2	#move right
 					else:
-					 	return 4	#move left
+						return 4	#move left
 				elif (x_r==X+2-3*i and y_r<Y+2-3*i):
 					return 3     #move down
 				elif (y_r==Y+2-3*i):
@@ -111,7 +115,7 @@ def FirstPhaseM(robot,typ):
 					if (x_r<2+3*i):
 						return 2	#move right
 					else:
-					 	return 4	#move left
+						return 4	#move left
 				elif (x_r==2+3*i and y_r<2+3*i):
 					return 1     #move up
 				elif (y_r==2+3*i):
@@ -122,19 +126,20 @@ def FirstPhaseM(robot,typ):
 					if (y_r<Y+2-3*i):
 						return 3	#move down
 					else:
-					 	return 1	#move up
+						return 1	#move up
 				elif (y_r==Y+2-3*i and x_r>2+3*i):
 					return 4     #move left
 				elif (x_r==2+3*i):
 					return 1	#move up
 
 		else:   #Anticlockwise scanners
+			i=i//2
 			if (x_b<X//2 and y_b<Y//2):
 				if (y_r==y_b and not(x_r==2+3*i)):
 					if (x_r<2+3*i):
 						return 2	#move right
 					else:
-					 	return 4	#move left
+						 return 4	#move left
 				elif (x_r==2+3*i and y_r<Y+2-3*i):
 					return 3     #move down
 				elif (y_r==Y+2-3*i):
@@ -145,7 +150,7 @@ def FirstPhaseM(robot,typ):
 					if (y_r<2+3*i):
 						return 1	#move up
 					else:
-					 	return 3	#move down
+						 return 3	#move down
 				elif (y_r==2+3*i and x_r>2+3*i):
 					return 4     #move left
 				elif (x_r==2+3*i):
@@ -156,7 +161,7 @@ def FirstPhaseM(robot,typ):
 					if (y_r<Y+2-3*i):
 						return 3	#move down
 					else:
-					 	return 1	#move up
+						 return 1	#move up
 				elif (y_r==Y+2-3*i and x_r<X+2-3*i):
 					return 2     #move right
 				elif (x_r==X+2-3*i):
@@ -167,7 +172,7 @@ def FirstPhaseM(robot,typ):
 					if (x_r<X+2-3*i):
 						return 2	#move right
 					else:
-					 	return 4	#move left
+						 return 4	#move left
 				elif (x_r==X+2-3*i and y_r>2+3*i):
 					return 1     #move up
 				elif (y_r==2+3*i):
@@ -194,13 +199,12 @@ def ActRobot(robot):
 	typ=robot.GetInitialSignal()[0]
 	#investigation
 	#VirusPolicy(robot,typ)
-	#if robot.GetVirus() > 1000:##change
-		#robot.DeployVirus(200)
+	
 	#movement    
 	if robot.GetCurrentBaseSignal()[0]=='~':
 		return FirstPhaseM(robot,typ) 
 	#if robot.CurrentBaseSignal()[0]=='b':
-		#return randint(1,4)#endgame boys
+		#return randint(1,4) #e boys
 
 
 def ActBase(base):
@@ -212,24 +216,24 @@ def ActBase(base):
 		base.SetYourSignal('~'+CoordStr(x_est,y_est)+'O'+CoordStr(x_b,y_b))#optimise later
 		#botcreation
 		i=0
-		while base.GetElixir() > 500 and i< base.GetDimensionX()+1:
+		while base.GetElixir() > 500 and i< base.GetDimensionX()//2+1:
 			base.create_robot('m'+str(i))  # scanner with signal of its path index
 			i+=1
-		#while base.GetElixir() > 1000:
-			#base.create_robot('a')  # search directly
-		#while base.GetElixir() > 500:
-			#base.create_robot('d')  # defence capability ->more conservative with movement
+		while base.GetElixir() > 1000:
+			base.create_robot('a')  # search directly
+		while base.GetElixir() > 500:
+			base.create_robot('d')  # defence capability ->more conservative with movement
 
 	All=base.GetListOfSignals()
-	#for L in All:
-	#	if len(L)>0 and L[0]=='b':
-	#		base.SetYourSignal(L[:5]+base.GetYourSignal()[5:]) #checkforerrors
+	for L in All:
+		if len(L)>0 and L[0]=='b':
+			base.SetYourSignal(L[:5]+base.GetYourSignal()[5:]) #checkforerrors
 
 	def enemies_near(): #??
 		return (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
 	if enemies_near():
 		base.DeployVirus(800) #100 per block
-		base.SetYourSignal(base.GetYourSignal()+'h'*str(enemies_near))
+		base.SetYourSignal(base.GetYourSignal()+'h'*(enemies_near))
 
 	##put more logic in the base defense/attack mechn!!
 	return
