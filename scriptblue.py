@@ -198,13 +198,15 @@ def FirstPhaseM(robot,typ):
 def ActRobot(robot):
 	typ=robot.GetInitialSignal()[0]
 	#investigation
-	#VirusPolicy(robot,typ)
+	VirusPolicy(robot,typ)
 	
 	#movement    
 	if robot.GetCurrentBaseSignal()[0]=='~':
 		return FirstPhaseM(robot,typ) 
 	#if robot.CurrentBaseSignal()[0]=='b':
 		#return randint(1,4) #e boys
+	else:
+		return randint(1,4)
 
 
 def ActBase(base):
@@ -216,9 +218,8 @@ def ActBase(base):
 		base.SetYourSignal('~'+CoordStr(x_est,y_est)+'O'+CoordStr(x_b,y_b))#optimise later
 		#botcreation
 		i=0
-		while base.GetElixir() > 500 and i< base.GetDimensionX()//2+1:
-			base.create_robot('m'+str(i))  # scanner with signal of its path index
-			i+=1
+		#while base.GetElixir() > 500 and i<= 2*(base.GetDimensionX()//6):
+			#base.create_robot('m'+str(i))  # scanner with signal of its path index
 		while base.GetElixir() > 1000:
 			base.create_robot('a')  # search directly
 		while base.GetElixir() > 500:
@@ -233,7 +234,7 @@ def ActBase(base):
 		return (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
 	if enemies_near():
 		base.DeployVirus(800) #100 per block
-		base.SetYourSignal(base.GetYourSignal()+'h'*(enemies_near))
+		base.SetYourSignal(base.GetYourSignal()+'h'*(enemies_near()))
 
 	##put more logic in the base defense/attack mechn!!
 	return
