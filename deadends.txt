@@ -1,0 +1,52 @@
+i=0
+while base.GetElixir() > 500 and i<= 2*(base.GetDimensionX()//6):
+            base.create_robot('m'+str(i))  # scanner with signal of its path index
+if typ=='m': #scanners go on
+        i=int(robot.GetInitialSignal()[1:])
+        # 1 up, 2 right, 3 down, 4 left
+
+        if i%2 == 0:    #Clockwise scanners
+            i = i//2
+            if (x_b<X//2 and y_b<Y//2):
+                if (x_r==x_b and not(y_r==2+3*i)):
+                    if (y_r<2+3*i):
+                        return 1	#move up
+                    else:
+                        return 3	#move down
+                elif (y_r==2+3*i and x_r<X+2-3*i):
+                    return 2     #move right
+                elif (x_r==X+2-3*i):
+                    return 3	#move down
+    
+            elif (x_b>= X//2 and y_b<Y//2):
+                if (y_r==x_b and not(x_r==X+2-3*i)):
+                    if (x_r<X+2-3*i):
+                        return 2	#move right
+                    else:
+                        return 4	#move left
+                elif (x_r==X+2-3*i and y_r<Y+2-3*i):
+                    return 3     #move down
+                elif (y_r==Y+2-3*i):
+                    return 4	#move left
+            
+            elif (x_b<X//2 and y_b>=Y//2):
+                if (y_r==y_b and not(x_r==2+3*i)):
+                    if (x_r<2+3*i):
+                        return 2	#move right
+                    else:
+                        return 4	#move left
+                elif (x_r==2+3*i and y_r<2+3*i):
+                    return 1     #move up
+                elif (y_r==2+3*i):
+                    return 2	#move right
+            
+            elif (x_b>=X//2 and y_b>=Y//2):
+                if (x_r==x_b and not(y_r==Y+2-3*i)):
+                    if (y_r<Y+2-3*i):
+                        return 3	#move down
+                    else:
+                        return 1	#move up
+                elif (y_r==Y+2-3*i and x_r>2+3*i):
+                    return 4     #move left
+                elif (x_r==2+3*i):
+                    return 1	#move up
