@@ -61,16 +61,17 @@ def FirstPhaseM(robot,typ,id): #~
         robot.setSignal('b'+CoordStr(x_r+1,y_r+1))
     elif robot.investigate_sw()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r+1))
-    elif abs(x_d-x_r)+abs(y_d-y_r)<=2 and robot.GetYourSignal=='': #reached near destination but do not see base yet
-        robot.setSignal('0')#counter updated if no base
+    #el and robot.GetYourSignal=='': #reached near destination but do not see base yet
+        #counter updated if no base
     else:
         try:
-            if int(robot.GetYourSignal())==8:
+            if int(robot.GetYourSignal())>=8:
                 robot.setSignal('!'+robot.GetYourSignal())
             else :
                 robot.setSignal(str(int(robot.GetYourSignal())+1))
         except ValueError:
-            pass   
+            if abs(x_d-x_r)+abs(y_d-y_r)<=2:
+                robot.setSignal('0')
     #the movement defining code
    
     x_h=int(baes[6:8]) #home
@@ -245,6 +246,7 @@ def ActBase(base):
                 break
             elif L[0]=='!':
                 base.SetYourSignal('!'+base.GetYourSignal()[1:])
+                
 
     def enemies_near(): #??
         return (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
