@@ -41,23 +41,37 @@ def VirusPolicy(robot,typ):
     
 def FirstPhaseM(robot,typ,id): #~
     x_r,y_r=robot.GetPosition()
+    baes=robot.GetCurrentBaseSignal()
+    x_d=int(baes[1:3]) #destination estimation
+    y_d=int(baes[3:5])
     #insert base finding code
     if robot.investigate_up()=='enemy-base': #rem--chk 
-        robot.setSignal('b'+CoordStr(x_r,y_r-1))       
+        robot.setSignal('b'+CoordStr(x_r,y_r-1))
+        return choice((2,4))     
     elif robot.investigate_down()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r,y_r+1))       
+        robot.setSignal('b'+CoordStr(x_r,y_r+1))
+        return choice((2,4))       
     elif robot.investigate_left()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r))
+        return choice((1,3)) 
     elif robot.investigate_right()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r+1,y_r))
+        return choice((1,3)) 
     elif robot.investigate_ne()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r+1,y_r-1))
+        return choice((1,2))
     elif robot.investigate_nw()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r-1))
+        return choice((1,4))
     elif robot.investigate_se()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r+1,y_r+1))
+        return choice((3,2))
     elif robot.investigate_sw()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r+1))
+        return choice((3,4))
+    elif abs(x_d-x_r)+abs(y_d-y_r)<=2: #reached near destination but do not see base yet
+        if robot.GetYourSignal=='':
+            robot.setSignal('0')#counter updated if no base
     else:
         try:
             if int(robot.GetYourSignal())==10:
@@ -67,18 +81,9 @@ def FirstPhaseM(robot,typ,id): #~
         except ValueError:
             pass   
     #the movement defining code
-    baes=robot.GetCurrentBaseSignal()
-    
-    x_d=int(baes[1:3]) #destination estimation
-    y_d=int(baes[3:5])
+   
     x_h=int(baes[6:8]) #home
     y_h=int(baes[8:10])
-    
-    X = robot.GetDimensionX()
-    Y = robot.GetDimensionY()
-
-    if abs(x_d-x_r)+abs(y_d-y_r)<=2: #reached near destination but do not see base yet
-        robot.setSignal('0')#counter updated if no base
     
 
     pstring='1234'
@@ -107,26 +112,35 @@ def FirstPhaseM(robot,typ,id): #~
             else:
                 pstring+='3'*(y_h-y_r)
             return int(choice(pstring))
+
 def SecondPhaseM(robot,typ,id): #!
     x_r,y_r=robot.GetPosition()
     #insert base finding code
     if robot.investigate_up()=='enemy-base': #rem--chk 
-        robot.setSignal('b'+CoordStr(x_r,y_r-1))       
+        robot.setSignal('b'+CoordStr(x_r,y_r-1))
+        return choice((2,4))     
     elif robot.investigate_down()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r,y_r+1))       
+        robot.setSignal('b'+CoordStr(x_r,y_r+1))
+        return choice((2,4))       
     elif robot.investigate_left()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r))
+        return choice((1,3)) 
     elif robot.investigate_right()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r+1,y_r))
+        return choice((1,3)) 
     elif robot.investigate_ne()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r+1,y_r-1))
+        return choice((1,2))
     elif robot.investigate_nw()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r-1))
+        return choice((1,4))
     elif robot.investigate_se()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r+1,y_r+1))
+        return choice((3,2))
     elif robot.investigate_sw()=='enemy-base':
         robot.setSignal('b'+CoordStr(x_r-1,y_r+1))
-        
+        return choice((3,4))
+       
     #the movement defining code
     baes=robot.GetCurrentBaseSignal()
     
@@ -135,17 +149,18 @@ def SecondPhaseM(robot,typ,id): #!
     x_h=int(baes[6:8]) #home
     y_h=int(baes[8:10])
     
-    X = robot.GetDimensionX()
-    Y = robot.GetDimensionY()
-
     pstring='1234'
     if typ=='a': #direct scouts
-        try:  
-            time=int(robot.GetYourSignal())
-            robot.setSignal(str(time+1))
-        except ValueError:
-            time=int(robot.GetYourSignal()[1:])
-            robot.setSignal(str(time+1))
+        if len(robot.GetYourSignal())>0:
+            try:  
+                time=int(robot.GetYourSignal())
+                robot.setSignal(str(time+1))
+            except ValueError:
+                time=int(robot.GetYourSignal()[1:])
+                robot.setSignal(str(time+1))
+        else :
+            robot.setSignal('10')
+            time=10
         if time<15:
             if x_r<x_d:
                 pstring+='4'*(x_r-x_d) #flipped, away from base
