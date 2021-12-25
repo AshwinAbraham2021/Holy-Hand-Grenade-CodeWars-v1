@@ -12,6 +12,32 @@ def CoordStr(x,y): # x,y<100
         ys=str(y)
     return xs+ys
 
+def randmoves(robot):
+    rosig=robot.GetYourSignal()
+    M=[1,2,3,4]
+    if robot.investigate_up()=='wall':
+        M.remove(1)
+    elif robot.investigate_down()=='wall':
+        M.remove(3)
+    if robot.investigate_left()=='wall':
+        M.remove(4)
+    elif robot.investigate_right()=='wall':
+        M.remove(2)
+    if 'm' in rosig:
+        ind=rosig.index('m')+1
+        x=(int(rosig[ind])+2)%4
+        if x in M:
+            M.remove(x)
+        move=choice(M)
+        robot.setSignal(rosig[:ind]+str(move)+rosig[ind+1:])
+
+    else:
+        move=choice(M)
+        robot.setSignal(rosig+'m'+str(move))
+
+    return move
+
+
 def VirusPolicy(robot,typ):
     viral=robot.GetVirus()
     up = robot.investigate_up()
@@ -32,6 +58,8 @@ def VirusPolicy(robot,typ):
         numen=locale.count('enemy')        
         if numen>2 and robot.GetVirus()>1000:
             robot.DeployVirus(800)	#alter the values
+        elif robot.GetVirus()>5000:
+            robot.DeployVirus(800)
         else:
             robot.DeployVirus(200)	#alter the values
         
@@ -64,21 +92,23 @@ def FirstPhaseM(robot,typ,id): #~
     #el and robot.GetYourSignal=='': #reached near destination but do not see base yet
         #counter updated if no base
     else:
+        rosig=robot.GetYourSignal()
         try:
-            if int(robot.GetYourSignal())>=8:
-                robot.setSignal('!'+robot.GetYourSignal())
-            else :
-                robot.setSignal(str(int(robot.GetYourSignal())+1))
-        except ValueError:
-            if abs(x_d-x_r)+abs(y_d-y_r)<=2:
-                robot.setSignal('0')
+            if rosig[0]=='t':            
+                if int(rosig[1])>=8:
+                    robot.setSignal('!'+rosig)
+                else :
+                    robot.setSignal('t'+str((int(rosig[1])+1)%10)+rosig[2:])
+        except IndexError:
+            if abs(x_d-x_r)+abs(y_d-y_r)<2:
+                robot.setSignal('t0')
     #the movement defining code
    
     x_h=int(baes[6:8]) #home
     y_h=int(baes[8:10])
     
 
-    pstring='1234'
+    pstring='1234'*2
     if typ=='a': #direct scouts  
         if x_r<x_d:
             pstring+='2'*(x_d-x_r) 
@@ -89,11 +119,12 @@ def FirstPhaseM(robot,typ,id): #~
         else:
             pstring+='3'*(y_d-y_r)
         return int(choice(pstring))
-    
+    elif typ=='m':
+        return randmoves(robot)
     elif typ=='d': #defence
         #if help condition either alter this or signal[0]
-        if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,3*id-2*baes.count('h')):        
-            return randint(1,4)
+        if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,4*id-2*baes.count('h')):        
+            return randmoves(robot)
         else:
             if x_r<x_h:
                 pstring+='2'*(x_h-x_r)
@@ -141,16 +172,17 @@ def SecondPhaseM(robot,typ,id): #!
     x_h=int(baes[6:8]) #home
     y_h=int(baes[8:10])
     
-    pstring='1234'
-    if typ=='a': #direct scouts
+    
+    if typ=='a'or typ=='m': #direct scouts
         
-        return int(choice(pstring))
+        return randmoves(robot)
     
     elif typ=='d': #defence
         #if help condition either alter this or signal[0]
         if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,3*id-2*baes.count('h')):        
-            return randint(1,4)
+            return randmoves(robot)
         else:
+            pstring='1234'
             if x_r<x_h:
                 pstring+='2'*(x_h-x_r)
             else:
@@ -161,7 +193,7 @@ def SecondPhaseM(robot,typ,id): #!
                 pstring+='3'*(y_h-y_r)
             return int(choice(pstring))
 
-def EndPhase(robot,typ):
+def EndPhase(robot,typ,id):
     x_r,y_r=robot.GetPosition()
     baes=robot.GetCurrentBaseSignal()  
     x_d=int(baes[1:3]) #destination
@@ -188,8 +220,8 @@ def EndPhase(robot,typ):
             return int(choice(pstring))
     elif typ=='d': #defence
         #if help condition either alter this or signal[0]
-        if abs(x_r-x_h)+abs(y_r-y_h)<10-2*baes.count('h'):        
-            return randint(1,4)
+        if abs(x_r-x_h)+abs(y_r-y_h)<max(2,4*id-2*baes.count('h')):        
+            return randmoves(robot)
         else:
             pstring+='1234'
             if x_r<x_h:
@@ -214,7 +246,7 @@ def ActRobot(robot):
     if robot.GetCurrentBaseSignal()[0]=='!':
         return SecondPhaseM(robot,typ,id) 
     elif robot.GetCurrentBaseSignal()[0]=='b':
-        return EndPhase(robot,typ) #e boys
+        return EndPhase(robot,typ,id) #e boys
     else:
         return randint(1,4)
 
@@ -227,14 +259,16 @@ def ActBase(base):
         y_est=base.GetDimensionX()-y_b  # could help with finding enemy base quickly
         base.SetYourSignal('~'+CoordStr(x_est,y_est)+'O'+CoordStr(x_b,y_b))#optimise later
         #botcreation
-        
+        i=0
         j=0
         k=0
         
-        while base.GetElixir() > 1200:
+        while base.GetElixir() > 1200: #1200 tha
             base.create_robot('a'+str(j))  # search directly
             j+=1
-        while base.GetElixir() > 500:
+        while base.GetElixir() > 900: #900 tha
+            base.create_robot('m'+str(i))
+        while base.GetElixir() > 500: #500 tha
             base.create_robot('d'+str(k))  # defence capability ->more conservative with movement
             k+=1
             
@@ -246,6 +280,7 @@ def ActBase(base):
                 break
             elif L[0]=='!':
                 base.SetYourSignal('!'+base.GetYourSignal()[1:])
+                #base.create_robot('f0')
                 
 
     def enemies_near(): #??
