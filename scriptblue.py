@@ -25,7 +25,8 @@ def randmoves(robot):
         M.remove(2)
     if 'm' in rosig:
         ind=rosig.index('m')+1
-        x=(int(rosig[ind])+2)%4
+        x=int(rosig[ind])+2
+        if x>4: x=x-4
         if x in M:
             M.remove(x)
         move=choice(M)
@@ -36,6 +37,21 @@ def randmoves(robot):
         robot.setSignal(rosig+'m'+str(move))
 
     return move
+
+def WalkTo(x_r,y_r,x_d,y_d,randomiser):
+    pstring='0'+'1234'*randomiser
+    if x_r<x_d:
+        pstring+='2'*(x_d-x_r) 
+    else:
+        pstring+='4'*(x_r-x_d)
+    if y_r>y_d:
+        pstring+='1'*(y_r-y_d)
+    else:
+        pstring+='3'*(y_d-y_r)
+    return int(choice(pstring))
+
+
+
 
 
 def VirusPolicy(robot,typ):
@@ -108,17 +124,8 @@ def FirstPhaseM(robot,typ,id): #~
     y_h=int(baes[8:10])
     
 
-    pstring='1234'*2
     if typ=='a': #direct scouts  
-        if x_r<x_d:
-            pstring+='2'*(x_d-x_r) 
-        else:
-            pstring+='4'*(x_r-x_d)
-        if y_r>y_d:
-            pstring+='1'*(y_r-y_d)
-        else:
-            pstring+='3'*(y_d-y_r)
-        return int(choice(pstring))
+        return WalkTo(x_r,y_r,x_d,y_d)        
     elif typ=='m':
         return randmoves(robot)
     elif typ=='d': #defence
@@ -126,15 +133,7 @@ def FirstPhaseM(robot,typ,id): #~
         if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,4*id-2*baes.count('h')):        
             return randmoves(robot)
         else:
-            if x_r<x_h:
-                pstring+='2'*(x_h-x_r)
-            else:
-                pstring+='4'*(x_r-x_h)
-            if y_r>y_h:
-                pstring+='1'*(y_r-y_h)
-            else:
-                pstring+='3'*(y_h-y_r)
-            return int(choice(pstring))
+            return WalkTo(x_r,y_r,x_h,y_h,0)
 
 def SecondPhaseM(robot,typ,id): #!
     x_r,y_r=robot.GetPosition()
@@ -182,16 +181,7 @@ def SecondPhaseM(robot,typ,id): #!
         if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,3*id-2*baes.count('h')):        
             return randmoves(robot)
         else:
-            pstring='1234'
-            if x_r<x_h:
-                pstring+='2'*(x_h-x_r)
-            else:
-                pstring+='4'*(x_r-x_h)
-            if y_r>y_h:
-                pstring+='1'*(y_r-y_h)
-            else:
-                pstring+='3'*(y_h-y_r)
-            return int(choice(pstring))
+            return WalkTo(x_r,y_r,x_h,y_h)
 
 def EndPhase(robot,typ,id):
     x_r,y_r=robot.GetPosition()
@@ -200,7 +190,6 @@ def EndPhase(robot,typ,id):
     y_d=int(baes[3:5])
     x_h=int(baes[6:8]) #home
     y_h=int(baes[8:10])
-    pstring=''
 
     if typ=='a'or typ=='m':
         if abs(x_r-x_d)+abs(y_r-y_d)==1:
@@ -209,43 +198,27 @@ def EndPhase(robot,typ,id):
             else:
                 return choice((1,3))
         else :
-            if x_r<x_d:
-                pstring+='2'*(x_d-x_r)
-            else:
-                pstring+='4'*(x_r-x_d)
-            if y_r>y_d:
-                pstring+='1'*(y_r-y_d)
-            else:
-                pstring+='3'*(y_d-y_r)
-            return int(choice(pstring))
+            return WalkTo(x_r,y_r,x_d,y_d,)
     elif typ=='d': #defence
         #if help condition either alter this or signal[0]
         if abs(x_r-x_h)+abs(y_r-y_h)<max(2,4*id-2*baes.count('h')):        
             return randmoves(robot)
         else:
-            pstring+='1234'
-            if x_r<x_h:
-                pstring+='2'*(x_h-x_r)
-            else:
-                pstring+='4'*(x_r-x_h)
-            if y_r>y_h:
-                pstring+='1'*(y_r-y_h)
-            else:
-                pstring+='3'*(y_h-y_r)
-            return int(choice(pstring))
+            return WalkTo(x_r,y_r,x_h,y_h,0)
 
 def ActRobot(robot):
     typ=robot.GetInitialSignal()[0]
     id=int(robot.GetInitialSignal()[1:])
+    phase=robot.GetCurrentBaseSignal()[0]
     #investigation
     VirusPolicy(robot,typ)
     
     #movement    
-    if robot.GetCurrentBaseSignal()[0]=='~':
+    if phase=='~':
         return FirstPhaseM(robot,typ,id)
-    if robot.GetCurrentBaseSignal()[0]=='!':
+    elif phase=='!':
         return SecondPhaseM(robot,typ,id) 
-    elif robot.GetCurrentBaseSignal()[0]=='b':
+    elif phase=='b':
         return EndPhase(robot,typ,id) #e boys
     else:
         return randint(1,4)
