@@ -31,7 +31,6 @@ def randmoves(robot):
             M.remove(x)
         move=choice(M)
         robot.setSignal(rosig[:ind]+str(move)+rosig[ind+1:])
-
     else:
         move=choice(M)
         robot.setSignal(rosig+'m'+str(move))
@@ -51,7 +50,12 @@ def WalkTo(x_r,y_r,x_d,y_d,randomiser):
     return int(choice(pstring))
 
 
-
+def Defence(robot,id):
+    return randmoves(robot)
+    #if abs(x_r-x_h)+abs(y_r-y_h)<max(2,4*id-2*baes.count('h')):        
+        #return randmoves(robot)
+    #else:
+        #return WalkTo(x_r,y_r,x_h,y_h,0)
 
 
 def VirusPolicy(robot,typ):
@@ -83,58 +87,59 @@ def VirusPolicy(robot,typ):
             
 
     
-def FirstPhaseM(robot,typ,id): #~
+def FirstPhaseM(robot,robsig,id): #~
     x_r,y_r=robot.GetPosition()
     baes=robot.GetCurrentBaseSignal()
-    x_d=int(baes[1:3]) #destination estimation
-    y_d=int(baes[3:5])
-    #insert base finding code
+    
+    if len(robsig)==1:
+        x_h=int(baes[3:5]) #home
+        y_h=int(baes[5:7])
+        X=robot.GetDimensionX()
+        Y=robot.GetDimensionY()
+        if robsig[0]=='0': robsig+=CoordStr(X-x_h-1,Y-y_h-1)
+        elif robsig[0]=='1': robsig+=CoordStr(X-x_h-1,y_h)
+        elif robsig[0]=='2': robsig+=CoordStr(x_h,Y-y_h-1)
+    
+    x_d=int(robsig[1:3])
+    y_d=int(robsig[3:5])
+    
     if robot.investigate_up()=='enemy-base': #rem--chk 
-        robot.setSignal('b'+CoordStr(x_r,y_r-1))     
+        robsig='b'+CoordStr(x_r,y_r-1)   
     elif robot.investigate_down()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r,y_r+1))       
+        robsig='b'+CoordStr(x_r,y_r+1)       
     elif robot.investigate_left()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r-1,y_r)) 
+        robsig='b'+CoordStr(x_r-1,y_r)
     elif robot.investigate_right()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r+1,y_r)) 
+        robsig='b'+CoordStr(x_r+1,y_r) 
     elif robot.investigate_ne()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r+1,y_r-1))
+        robsig='b'+CoordStr(x_r+1,y_r-1)
     elif robot.investigate_nw()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r-1,y_r-1))
+        robsig='b'+CoordStr(x_r-1,y_r-1)
     elif robot.investigate_se()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r+1,y_r+1))
+        robsig='b'+CoordStr(x_r+1,y_r+1)
     elif robot.investigate_sw()=='enemy-base':
-        robot.setSignal('b'+CoordStr(x_r-1,y_r+1))
+        robsig='b'+CoordStr(x_r-1,y_r+1)
     #el and robot.GetYourSignal=='': #reached near destination but do not see base yet
         #counter updated if no base
     else:
-        rosig=robot.GetYourSignal()
         try:
-            if rosig[0]=='t':            
-                if int(rosig[1])>6:
-                    robot.setSignal('!'+rosig)
-                else :
-                    robot.setSignal('t'+str((int(rosig[1])+1)%8)+rosig[2:])
-        except IndexError:
+            ind=robsig.index('t')+1
+            time=int(robsig[ind])            
+            if time>3:
+                robsig+='!'
+            else :
+                robsig=robsig[:ind]+str((time+1)%5)+robsig[ind+1:]
+                #print (robsig)
+        except ValueError:
             if abs(x_d-x_r)+abs(y_d-y_r)<2:
-                robot.setSignal('t0')
+                robsig+='t0'
+                #print(robsig)
     #the movement defining code
-    x_h=int(baes[6:8]) #home
-    y_h=int(baes[8:10])
-    
+    robot.setSignal(robsig)
+    return WalkTo(x_r,y_r,x_d,y_d,1)
 
-    if typ=='a': #direct scouts  
-        return WalkTo(x_r,y_r,x_d,y_d,1)        
-    elif typ=='m':
-        return randmoves(robot)
-    elif typ=='d': #defence
-        #if help condition either alter this or signal[0]
-        if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,4*id-2*baes.count('h')):        
-            return randmoves(robot)
-        else:
-            return WalkTo(x_r,y_r,x_h,y_h,0)
 
-def SecondPhaseM(robot,typ,id): #!
+def SecondPhaseM(robot,robsig,id): #!
     x_r,y_r=robot.GetPosition()
     #insert base finding code
     if robot.investigate_up()=='enemy-base': #rem--chk 
@@ -164,30 +169,24 @@ def SecondPhaseM(robot,typ,id): #!
        
     #the movement defining code
     baes=robot.GetCurrentBaseSignal()
-    
-    x_d=int(baes[1:3]) #destination estimation
-    y_d=int(baes[3:5])
-    x_h=int(baes[6:8]) #home
-    y_h=int(baes[8:10])
-    
-    
-    if typ=='a'or typ=='m': #direct scouts    
-        return randmoves(robot)
-    
-    elif typ=='d': #defence
-        #if help condition either alter this or signal[0]
-        if abs(x_r-x_h)+abs(y_r-y_h)<=max(2,3*id-2*baes.count('h')):        
-            return randmoves(robot)
+    #print(robsig +'\t'+ baes)
+    try:
+        if id%2==0:
+            robsig=str(baes.index('~'))
         else:
-            return WalkTo(x_r,y_r,x_h,y_h,0)
+            robsig=str(baes.rindex('~'))
+    except: robsig='0'
+
+    robot.setSignal(robsig)  
+    return randint(1,4)
+    
 
 def EndPhase(robot,typ,id):
     x_r,y_r=robot.GetPosition()
     baes=robot.GetCurrentBaseSignal()  
     x_d=int(baes[1:3]) #destination
     y_d=int(baes[3:5])
-    x_h=int(baes[6:8]) #home
-    y_h=int(baes[8:10])
+    
 
     if typ=='a':
         if abs(x_r-x_d)+abs(y_r-y_d)==1:
@@ -209,27 +208,24 @@ def EndPhase(robot,typ,id):
         else:
             return randmoves(robot)
 
-    elif typ=='d': #defence
-        #if help condition either alter this or signal[0]
-        if abs(x_r-x_h)+abs(y_r-y_h)<max(2,4*id-2*baes.count('h')):        
-            return randmoves(robot)
-        else:
-            return WalkTo(x_r,y_r,x_h,y_h,0)
 
 def ActRobot(robot):
     typ=robot.GetInitialSignal()[0]
     id=int(robot.GetInitialSignal()[1:])
-    phase=robot.GetCurrentBaseSignal()[0]
+    basesig=robot.GetCurrentBaseSignal()
     #investigation
-    VirusPolicy(robot,typ)
+    #VirusPolicy(robot,typ)
     
     #movement    
-    if phase=='~':
-        return FirstPhaseM(robot,typ,id)
-    elif phase=='!':
-        return SecondPhaseM(robot,typ,id) 
-    elif phase=='b':
-        return EndPhase(robot,typ,id) #e boys
+    if typ=='d':
+        return Defence(robot,id)
+    elif basesig[0]=='b':
+        return EndPhase(robot,typ,id) 
+    elif typ=='a':
+        robsig=robot.GetYourSignal()
+        if robsig=='':robsig=str(id%3)
+        if basesig[int(robsig[0])]=='~': return FirstPhaseM(robot,robsig,id)
+        elif basesig[int(robsig[0])]=='!': return SecondPhaseM(robot,robsig,id)
     else:
         return randint(1,4)
 
@@ -239,16 +235,11 @@ def ActBase(base):
     if base.GetYourSignal()=='':
         No_of_bots=(base.GetElixir()-500)//50
         x_b,y_b=base.GetPosition()
-        print(x_b,y_b)
-        x_est=base.GetDimensionX()-x_b-1  # A good guess for expected location of opponent base,
-        y_est=base.GetDimensionX()-y_b-1  # could help with finding enemy base quickly
-        print(x_est,y_est)
-        base.SetYourSignal('~'+CoordStr(x_est,y_est)+'O'+CoordStr(x_b,y_b))#optimise later
+        base.SetYourSignal('~'*3+CoordStr(x_b,y_b))#optimise later
         #botcreation
         i=0
         j=0
-        k=0
-        
+        k=0        
         while base.GetElixir() > 1200: #1200 tha
             base.create_robot('a'+str(j))  # search directly
             j+=1
@@ -263,10 +254,10 @@ def ActBase(base):
     for L in All:
         if len(L)>0:
             if L[0]=='b':
-                base.SetYourSignal(L[:5]+basesig[5:]) #checkforerrors
+                base.SetYourSignal(L[:5]+basesig[7:]) #checkforerrors
                 break
-            elif L[0]=='!':
-                base.SetYourSignal('!'+basesig[1:])
+            elif L[-1]=='!':
+                base.SetYourSignal(basesig[:int(L[0])]+'!'+basesig[int(L[0])+1:])
                 #base.create_robot('f0')
                 
 
