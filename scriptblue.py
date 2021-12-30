@@ -178,7 +178,7 @@ def SecondPhaseM(robot,robsig,id): #!
     except: robsig='0'
 
     robot.setSignal(robsig)  
-    return randint(1,4)
+    return randint
     
 
 def EndPhase(robot,typ,id):
@@ -190,10 +190,17 @@ def EndPhase(robot,typ,id):
 
     if typ=='a':
         if abs(x_r-x_d)+abs(y_r-y_d)==1:
-            if x_r==x_d:
-                return choice((2,4))
+            if robot.GetVirus()<robot.GetElixir():
+                if x_r==x_d:
+                    return choice((2,4))
+                else:
+                    return choice((1,3))
             else:
-                return choice((1,3))
+                if x_r>x_d : return 4
+                elif x_r<x_d : return 2
+                else: 
+                    if y_r>y_d : return 1
+                    else: return 3
         else :
             return WalkTo(x_r,y_r,x_d,y_d,0)
     elif typ=='m':
@@ -214,17 +221,19 @@ def ActRobot(robot):
     id=int(robot.GetInitialSignal()[1:])
     basesig=robot.GetCurrentBaseSignal()
     #investigation
-    #VirusPolicy(robot,typ)
+    VirusPolicy(robot,typ)
     
     #movement    
     if typ=='d':
         return Defence(robot,id)
     elif basesig[0]=='b':
         return EndPhase(robot,typ,id) 
+    elif basesig[0:3]=='!!!': return randmoves(robot)
     elif typ=='a':
         robsig=robot.GetYourSignal()
         if robsig=='':robsig=str(id%3)
-        if basesig[int(robsig[0])]=='~': return FirstPhaseM(robot,robsig,id)
+        if robsig[0]=='b': return randint(1,4)
+        elif basesig[int(robsig[0])]=='~': return FirstPhaseM(robot,robsig,id)
         elif basesig[int(robsig[0])]=='!': return SecondPhaseM(robot,robsig,id)
     else:
         return randint(1,4)
@@ -251,15 +260,17 @@ def ActBase(base):
         
     basesig=base.GetYourSignal()        
     All=base.GetListOfSignals()
+    #print(len(All),basesig)
+    
     for L in All:
-        if len(L)>0:
+        if len(L)>0 and not(basesig[0]=='b'):
             if L[0]=='b':
+                #print(basesig)
                 base.SetYourSignal(L[:5]+basesig[7:]) #checkforerrors
                 break
             elif L[-1]=='!':
                 base.SetYourSignal(basesig[:int(L[0])]+'!'+basesig[int(L[0])+1:])
-                #base.create_robot('f0')
-                
+                #base.create_robot('f0')           
 
     enemies_near= (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
     
