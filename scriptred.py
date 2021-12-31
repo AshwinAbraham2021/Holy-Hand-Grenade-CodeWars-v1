@@ -1,12 +1,50 @@
 from random import randint
 
-
-
-
-    
 # 1-11 are defence bots
 # 12-30 are attack bots
 
+def Refuel(robot, base_x, base_y, bot_x, bot_y, id):
+	# will need base coordinates base_x,base_y and robot coordinates bot_x, bot_y
+	elixir = robot.GetElixir();
+	
+	elixirmin = 60
+	elixirmax = 500
+	
+	#elixir < elixirmin or elixir < elixirmax
+
+	if elixir < elixirmin:
+		dirn = randint(1,2)	
+		if (id%4 == 0): # Moving southeasterly
+			if dirn == 1:
+				return 2
+			else:
+				return 3
+		elif (id%4 == 1): # Moving southwesterly
+			if dirn == 1:
+				return 3
+			else:
+				return 4
+		elif (id%4 == 2): # Moving northwesterly
+			if dirn == 1:
+				return 4
+			else:
+				return 1
+		else: # Moving northeasterly
+			if dirn == 1:
+				return 1
+			else:
+				return 2
+	else:
+		if abs(base_x - bot_x) <= 3 and abs(base_y - bot_y) <= 3:
+			return(randint(1, 4))
+		if bot_x - base_x > 3:
+			return 4
+		elif bot_x - base_x < -3:
+			return 2
+		if bot_y - base_y > 3:
+			return 1
+		elif bot_y - base_y < -3:
+				return 3
 
 def ActRobot(robot):
 	init = robot.GetInitialSignal()
@@ -27,8 +65,8 @@ def ActRobot(robot):
 	ne = robot.investigate_ne()
 	sw = robot.investigate_sw()
 	se = robot.investigate_se()
+	
 	if id <= 11:
-		
 		if up == 'enemy' or down == 'enemy' or left == 'enemy' or right == 'enemy' or ne == 'enemy' or nw == 'enemy' or se == 'enemy' or sw == 'enemy':
 			robot.setSignal('alarm')
 			if (id == 1 or id == 3 or id == 5 or id == 7) and ('alarm' in base_signal) and ('form' in base_signal):
@@ -52,7 +90,7 @@ def ActRobot(robot):
 				else:
 					robot.DeployVirus(robot.GetVirus())
 			else:
-				robot.DeployVirus(min(robot.GetVirus(), 400))									
+				robot.DeployVirus(min(robot.GetVirus(), 400))						
 
 
 		#if base_signal.find('base found'):
@@ -120,19 +158,9 @@ def ActRobot(robot):
 
 
 		elif base_signal == ' ':
-			if abs(base_x - bot_x) <= 3 and abs(base_y - bot_y) <= 3:
-				return(randint(1, 4))
-			if bot_x - base_x > 3:
-				return 4
-			elif bot_x - base_x < -3:
-				return 2
-			if bot_y - base_y > 3:
-				return 1
-			elif bot_y - base_y < -3:
-				return 3
+			return Refuel(robot, base_x, base_y, bot_x, bot_y, id)
 
 	#else:
-
 	return 0
 
 def ActBase(base):
