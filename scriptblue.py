@@ -49,9 +49,41 @@ def WalkTo(x_r,y_r,x_d,y_d,randomiser):
         pstring+='3'*(y_d-y_r)
     return int(choice(pstring))
 
+def Refuel(robot, robsig , id):
+    # will need base coordinates base_x,base_y and robot coordinates bot_x, bot_y
+    base_x=int(robsig[:2])
+    base_y=int(robsig[2:4])
+    bot_x,bot_y=robot.GetPosition()
+    elixir = robot.GetElixir()
+    elixirmin = 60
+    elixirmax = 150
+    #elixir < elixirmin or elixir < elixirmax
+    if elixir < elixirmin:	
+        if (id%4 == 0): # Moving southeasterly
+            return choice((2,3))
+        elif (id%4 == 1): # Moving southwesterly
+            return choice((3,4))
+        elif (id%4 == 2): # Moving northwesterly
+            return choice((1,4))
+        else: # Moving northeasterly
+            return choice((1,2))
+    else:
+        if abs(base_x - bot_x) + abs(base_y - bot_y) < 8:
+            return(randint(1, 4))
+        else:
+            return WalkTo(base_x,base_y,bot_x,bot_y,0)
 
 def Defence(robot,id):
-    return randmoves(robot)
+    robsig=robot.GetYourSignal()
+    basesig=robot.GetCurrentBaseSignal()
+    if robsig=='': 
+        robsig= basesig[3:7]
+        robot.setSignal(robsig)
+    if ('H' in basesig):
+        x_r,y_r=robot.GetPosition()
+        return WalkTo(x_r,y_r,int(robsig[:2]),int(robsig[2:4]),1)
+    else:
+        return Refuel(robot,robsig,id)
     #if abs(x_r-x_h)+abs(y_r-y_h)<max(2,4*id-2*baes.count('h')):        
         #return randmoves(robot)
     #else:
@@ -190,7 +222,7 @@ def EndPhase(robot,typ,id):
 
     if typ=='a':
         if abs(x_r-x_d)+abs(y_r-y_d)==1:
-            if robot.GetVirus()<robot.GetElixir():
+            if robot.GetVirus()>robot.GetElixir():
                 if x_r==x_d:
                     return choice((2,4))
                 else:
@@ -217,6 +249,7 @@ def EndPhase(robot,typ,id):
 
 
 def ActRobot(robot):
+    #return 0
     typ=robot.GetInitialSignal()[0]
     id=int(robot.GetInitialSignal()[1:])
     basesig=robot.GetCurrentBaseSignal()
@@ -228,7 +261,7 @@ def ActRobot(robot):
         return Defence(robot,id)
     elif basesig[0]=='b':
         return EndPhase(robot,typ,id) 
-    elif basesig[0:3]=='!!!': return randmoves(robot)
+    elif basesig[:3]=='!!!': return randmoves(robot)
     elif typ=='a':
         robsig=robot.GetYourSignal()
         if robsig=='':robsig=str(id%3)
@@ -236,7 +269,32 @@ def ActRobot(robot):
         elif basesig[int(robsig[0])]=='~': return FirstPhaseM(robot,robsig,id)
         elif basesig[int(robsig[0])]=='!': return SecondPhaseM(robot,robsig,id)
     else:
-        return randint(1,4)
+        x_r,y_r=robot.GetPosition()
+        if robot.investigate_up()=='enemy-base': #rem--chk 
+            robot.setSignal('b'+CoordStr(x_r,y_r-1))
+            return choice((2,4))     
+        elif robot.investigate_down()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r,y_r+1))
+            return choice((2,4))       
+        elif robot.investigate_left()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r-1,y_r))
+            return choice((1,3)) 
+        elif robot.investigate_right()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r+1,y_r))
+            return choice((1,3)) 
+        elif robot.investigate_ne()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r+1,y_r-1))
+            return choice((1,2))
+        elif robot.investigate_nw()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r-1,y_r-1))
+            return choice((1,4))
+        elif robot.investigate_se()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r+1,y_r+1))
+            return choice((3,2))
+        elif robot.investigate_sw()=='enemy-base':
+            robot.setSignal('b'+CoordStr(x_r-1,y_r+1))
+            return choice((3,4))
+        else:  return randint(1,4)
 
 
 def ActBase(base):
@@ -246,14 +304,20 @@ def ActBase(base):
         x_b,y_b=base.GetPosition()
         base.SetYourSignal('~'*3+CoordStr(x_b,y_b))#optimise later
         #botcreation
-        i=0
-        j=0
+        #i=0
+        #j=0
         k=0        
-        while base.GetElixir() > 1200: #1200 tha
-            base.create_robot('a'+str(j))  # search directly
-            j+=1
-        while base.GetElixir() > 900: #900 tha
-            base.create_robot('m'+str(i))
+        #while base.GetElixir() > 1200: #1200 tha
+        #    base.create_robot('a'+str(i))  # search directly
+        #    i+=1
+        for i in range(No_of_bots//2):
+            base.create_robot('a'+str(i))
+
+        #while base.GetElixir() > 900: #900 tha
+            #base.create_robot('m'+str(j))
+        for j in range(No_of_bots//4):
+            base.create_robot('m'+str(j))
+
         while base.GetElixir() > 500: #500 tha
             base.create_robot('d'+str(k))  # defence capability ->more conservative with movement
             k+=1
@@ -275,12 +339,12 @@ def ActBase(base):
     enemies_near= (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
     
     if enemies_near:
-        base.DeployVirus(800) #100 per block
+        base.DeployVirus(1200) #100 per block
         if 'H' in basesig:
             ind=basesig.index('H')+1
-            base.SetYourSignal(basesig[:ind]+str(enemies_near)+basesig[ind+1:])
+            base.SetYourSignal(basesig[:ind]+str(max(9,2*enemies_near))+basesig[ind+1:])
         else:
-            base.SetYourSignal(basesig+'H'+str(enemies_near))
+            base.SetYourSignal(basesig+'H'+str(max(9,2*enemies_near)))
     else:
         if 'H0' in basesig:
             ind=basesig.index('H')
