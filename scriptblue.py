@@ -49,29 +49,129 @@ def WalkTo(x_r,y_r,x_d,y_d,randomiser):
         pstring+='3'*(y_d-y_r)
     return int(choice(pstring))
 
-def Refuel(robot, robsig , id):
+def Refuel(robot, base_x, base_y, bot_x, bot_y, id):
     # will need base coordinates base_x,base_y and robot coordinates bot_x, bot_y
-    base_x=int(robsig[:2])
-    base_y=int(robsig[2:4])
-    bot_x,bot_y=robot.GetPosition()
+    up = robot.investigate_up()
+    down = robot.investigate_down()
+    left = robot.investigate_left()
+    right = robot.investigate_right()
     elixir = robot.GetElixir()
-    elixirmin = 60
-    elixirmax = 150
+    elixirmin = 50
+    elixirmax = 500
+    
     #elixir < elixirmin or elixir < elixirmax
-    if elixir < elixirmin:	
-        if (id%4 == 0): # Moving southeasterly
-            return choice((2,3))
-        elif (id%4 == 1): # Moving southwesterly
-            return choice((3,4))
-        elif (id%4 == 2): # Moving northwesterly
-            return choice((1,4))
-        else: # Moving northeasterly
-            return choice((1,2))
+
+    X, Y = robot.GetDimensionX(), robot.GetDimensionY()
+
+    if elixir < elixirmin:
+        if id%2 == 0:	#Clockwise scanners
+            i = id//2
+            if (base_x<X/2 and base_y<Y/2):
+                if (bot_x==base_x and not(bot_y==2+3*i)):
+                    if (bot_y<2+3*i and up != 'wall'):
+                        return 1	#move up
+                    else:
+                        return 3	#move down
+                elif (bot_y==2+3*i and bot_x<X+2-3*i and right != 'wall'):
+                    return 2	 #move right
+                elif (bot_x==X+2-3*i and down != 'wall'):
+                    return 3	#move down
+    
+            elif (base_x>= X/2 and base_y<Y/2):
+                if (bot_y==base_x and not(bot_x==X+2-3*i)):
+                    if (bot_x<X+2-3*i and right != 'wall'):
+                        return 2	#move right
+                    else:
+                        return 4	#move left
+                elif (bot_x==X+2-3*i and bot_y<Y+2-3*i and down != 'wall'):
+                    return 3	 #move down
+                elif (bot_y==Y+2-3*i and left != 'wall'):
+                    return 4	#move left
+            
+            elif (base_x<X/2 and base_y>=Y/2):
+                if (bot_y==base_y and not(bot_x==2+3*i)):
+                    if (bot_x<2+3*i and right != 'wall'):
+                        return 2	#move right
+                    else:
+                        return 4	#move left
+                elif (bot_x==2+3*i and bot_y<2+3*i and up != 'wall'):
+                    return 1	 #move up
+                elif (bot_y==2+3*i and right != 'wall'):
+                    return 2	#move right
+            
+            elif (base_x>=X/2 and base_y>=Y/2):
+                if (bot_x==base_x and not(bot_y==Y+2-3*i)):
+                    if (bot_y<Y+2-3*i and down != 'wall'):
+                        return 3	#move down
+                    else:
+                        return 1	#move up
+                elif (bot_y==Y+2-3*i and bot_x>2+3*i and left != 'wall'):
+                    return 4	 #move left
+                elif (bot_x==2+3*i and up != 'wall'):
+                    return 1	#move up
+                    
+        else:   #Anticlockwise scanners
+            i = id//2
+            if (base_x<X/2 and base_y<Y/2):
+                if (bot_y==base_y and not(bot_x==2+3*i)):
+                    if (bot_x<2+3*i and right != 'wall'):
+                        return 2	#move right
+                    else:
+                         return 4	#move left
+                elif (bot_x==2+3*i and bot_y<Y+2-3*i and down != 'wall'):
+                    return 3	 #move down
+                elif (bot_y==Y+2-3*i and right != 'wall'):
+                    return 2	#move right
+    
+            elif (base_x>= X/2 and base_y<Y/2):
+                if (bot_x==base_x and not(bot_y==2+3*i)):
+                    if (bot_y<2+3*i):
+                        return 1	#move up
+                    else:
+                         return 3	#move down
+                elif (bot_y==2+3*i and bot_x>2+3*i):
+                    return 4	 #move left
+                elif (bot_x==2+3*i):
+                    return 3	#move down
+            
+            elif (base_x<X/2 and base_y>=Y/2):
+                if (bot_x==base_x and not(bot_y==Y+2-3*i)):
+                    if (bot_y<Y+2-3*i and down != 'wall'):
+                        return 3	#move down
+                    else:
+                         return 1	#move up
+                elif (bot_y==Y+2-3*i and bot_x<X+2-3*i and right != 'wall'):
+                    return 2	 #move right
+                elif (bot_x==X+2-3*i and up != 'wall'):
+                    return 1	#move up
+            
+            elif (base_x>=X/2 and base_y>=Y/2):
+                if (bot_y==base_y and not(bot_x==X+2-3*i)):
+                    if (bot_x<X+2-3*i and right != 'wall'):
+                        return 2	#move right
+                    else:
+                         return 4	#move left
+                elif (bot_x==X+2-3*i and bot_y>2+3*i and up != 'wall'):
+                    return 1	 #move up
+                elif (bot_y==2+3*i and left != 'wall'):
+                    return 4	#move left
+        
+        return randint(1,4)
+        
     else:
-        if abs(base_x - bot_x) + abs(base_y - bot_y) < 8:
-            return(randint(1, 4))
-        else:
-            return WalkTo(base_x,base_y,bot_x,bot_y,0)
+        #The center of the region of patrol (patrol_x, patrol_y) should be the area right next to our base along the line joining our base and enemy base. In most cases this will be the lien joining our base with centre.
+        patrol_x = (0.70*base_x + 0.3*(X/2)) 
+        patrol_y = (0.70*base_y + 0.3*(Y/2))
+        if abs(patrol_x - bot_x) <= 3 and abs(patrol_y - bot_y) <= 3 :
+            return randint(1, 4)
+        if bot_x - patrol_x > 3:
+            return 4
+        elif bot_x - patrol_x < -3:
+            return 2
+        if bot_y - patrol_y > 3:
+            return 1
+        elif bot_y - patrol_y < -3:
+            return 3
 
 def Defence(robot,id):
     robsig=robot.GetYourSignal()
@@ -79,16 +179,18 @@ def Defence(robot,id):
     if robsig=='': 
         robsig= basesig[3:7]
         robot.setSignal(robsig)
+    base_x=int(robsig[:2])
+    base_y=int(robsig[2:4])
+    x_r,y_r=robot.GetPosition()
     if ('H' in basesig):
-        x_r,y_r=robot.GetPosition()
+        
         return WalkTo(x_r,y_r,int(robsig[:2]),int(robsig[2:4]),1)
     else:
-        return Refuel(robot,robsig,id)
+        return Refuel(robot, base_x, base_y, x_r, y_r, id)
     #if abs(x_r-x_h)+abs(y_r-y_h)<max(2,4*id-2*baes.count('h')):        
         #return randmoves(robot)
     #else:
         #return WalkTo(x_r,y_r,x_h,y_h,0)
-
 
 def VirusPolicy(robot,typ):
     viral=robot.GetVirus()
@@ -110,15 +212,11 @@ def VirusPolicy(robot,typ):
         numen=locale.count('enemy')        
         if numen>2 and robot.GetVirus()>1000:
             robot.DeployVirus(800)	#alter the values
-        elif robot.GetVirus()>5000:
+        elif robot.GetVirus()>5000 or typ=='d':
             robot.DeployVirus(800)
         else:
             robot.DeployVirus(200)	#alter the values
-        
-            
-            
-
-    
+           
 def FirstPhaseM(robot,robsig,id): #~
     x_r,y_r=robot.GetPosition()
     baes=robot.GetCurrentBaseSignal()
@@ -151,25 +249,13 @@ def FirstPhaseM(robot,robsig,id): #~
         robsig='b'+CoordStr(x_r+1,y_r+1)
     elif robot.investigate_sw()=='enemy-base':
         robsig='b'+CoordStr(x_r-1,y_r+1)
-    #el and robot.GetYourSignal=='': #reached near destination but do not see base yet
-        #counter updated if no base
-    else:
-        try:
-            ind=robsig.index('t')+1
-            time=int(robsig[ind])            
-            if time>3:
-                robsig+='!'
-            else :
-                robsig=robsig[:ind]+str((time+1)%5)+robsig[ind+1:]
-                #print (robsig)
-        except ValueError:
-            if abs(x_d-x_r)+abs(y_d-y_r)<2:
-                robsig+='t0'
-                #print(robsig)
+    elif abs(x_d-x_r)+abs(y_d-y_r)<2:
+        robsig+='!'
+        #print("no")
+        #print(robsig)
     #the movement defining code
     robot.setSignal(robsig)
     return WalkTo(x_r,y_r,x_d,y_d,1)
-
 
 def SecondPhaseM(robot,robsig,id): #!
     x_r,y_r=robot.GetPosition()
@@ -202,17 +288,16 @@ def SecondPhaseM(robot,robsig,id): #!
     #the movement defining code
     baes=robot.GetCurrentBaseSignal()
     #print(robsig +'\t'+ baes)
-    try:
-        if id%2==0:
-            robsig=str(baes.index('~'))
-        else:
-            robsig=str(baes.rindex('~'))
-    except: robsig='0'
+    #try:
+    if id%2==0:
+        robsig=str(baes.index('~'))
+    else:
+        robsig=str(baes.rindex('~'))
+    #except: robsig='0'
 
     robot.setSignal(robsig)  
-    return randint
+    return randint(1,4)
     
-
 def EndPhase(robot,typ,id):
     x_r,y_r=robot.GetPosition()
     baes=robot.GetCurrentBaseSignal()  
@@ -247,7 +332,6 @@ def EndPhase(robot,typ,id):
         else:
             return randmoves(robot)
 
-
 def ActRobot(robot):
     #return 0
     typ=robot.GetInitialSignal()[0]
@@ -261,13 +345,16 @@ def ActRobot(robot):
         return Defence(robot,id)
     elif basesig[0]=='b':
         return EndPhase(robot,typ,id) 
-    elif basesig[:3]=='!!!': return randmoves(robot)
+    elif basesig[0:3]=='!!!': return randmoves(robot)
     elif typ=='a':
         robsig=robot.GetYourSignal()
         if robsig=='':robsig=str(id%3)
         if robsig[0]=='b': return randint(1,4)
-        elif basesig[int(robsig[0])]=='~': return FirstPhaseM(robot,robsig,id)
-        elif basesig[int(robsig[0])]=='!': return SecondPhaseM(robot,robsig,id)
+        elif basesig[int(robsig[0])]=='~':
+            return FirstPhaseM(robot,robsig,id)
+        elif basesig[int(robsig[0])]=='!':
+            #print("changed")
+            return SecondPhaseM(robot,robsig,id)
     else:
         x_r,y_r=robot.GetPosition()
         if robot.investigate_up()=='enemy-base': #rem--chk 
@@ -302,24 +389,16 @@ def ActBase(base):
     if base.GetYourSignal()=='':
         No_of_bots=(base.GetElixir()-500)//50
         x_b,y_b=base.GetPosition()
-        base.SetYourSignal('~'*3+CoordStr(x_b,y_b))#optimise later
+        base.SetYourSignal('~~~'+CoordStr(x_b,y_b))#optimise later
         #botcreation
-        #i=0
-        #j=0
-        k=0        
-        #while base.GetElixir() > 1200: #1200 tha
-        #    base.create_robot('a'+str(i))  # search directly
-        #    i+=1
-        for i in range(No_of_bots//2):
-            base.create_robot('a'+str(i))
-
-        #while base.GetElixir() > 900: #900 tha
-            #base.create_robot('m'+str(j))
-        for j in range(No_of_bots//4):
+        
+        for j in range(max(11,No_of_bots//4)):
             base.create_robot('m'+str(j))
-
+        for i in range(No_of_bots//2):
+            if base.GetElixir()>500: base.create_robot('a'+str(i))
+        k=0
         while base.GetElixir() > 500: #500 tha
-            base.create_robot('d'+str(k))  # defence capability ->more conservative with movement
+            base.create_robot('m'+str(k))  # defence capability ->more conservative with movement
             k+=1
         
     basesig=base.GetYourSignal()        
@@ -330,29 +409,32 @@ def ActBase(base):
         if len(L)>0 and not(basesig[0]=='b'):
             if L[0]=='b':
                 #print(basesig)
-                base.SetYourSignal(L[:5]+basesig[7:]) #checkforerrors
+                basesig=L[:5]+basesig[7:] #checkforerrors
                 break
             elif L[-1]=='!':
-                base.SetYourSignal(basesig[:int(L[0])]+'!'+basesig[int(L[0])+1:])
+                #print('recd')
+                basesig=basesig[:int(L[0])]+'!'+basesig[int(L[0])+1:]
                 #base.create_robot('f0')           
+    if basesig[0:3]=='!!!':
+        basesig='~~~'+ basesig[3:]
 
-    enemies_near= (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')
-    
+    enemies_near= (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')    
     if enemies_near:
         base.DeployVirus(1200) #100 per block
         if 'H' in basesig:
             ind=basesig.index('H')+1
-            base.SetYourSignal(basesig[:ind]+str(max(9,2*enemies_near))+basesig[ind+1:])
+            basesig+=basesig[:ind]+str(max(9,2*enemies_near))+basesig[ind+1:]
         else:
-            base.SetYourSignal(basesig+'H'+str(max(9,2*enemies_near)))
+            basesig+=basesig+'H'+str(max(9,2*enemies_near))
     else:
         if 'H0' in basesig:
             ind=basesig.index('H')
-            base.SetYourSignal(basesig[:ind]+basesig[ind+2:])
+            basesig+=basesig[:ind]+basesig[ind+2:]
         elif 'H' in basesig:
             ind=basesig.index('H')+1
-            base.SetYourSignal(basesig[:ind]+str(int(basesig[ind])-1)+basesig[ind+1:])
-        
+            basesig+=basesig[:ind]+str(int(basesig[ind])-1)+basesig[ind+1:]
 
-    ##put more logic in the base defense/attack mechn!!
+    base.SetYourSignal(basesig)   
+    #print(basesig)
+
     return
