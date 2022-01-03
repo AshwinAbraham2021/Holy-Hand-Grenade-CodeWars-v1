@@ -420,7 +420,7 @@ def ActBase(base):
 
     enemies_near= (base.investigate_up()=='enemy')+(base.investigate_down()=='enemy')+(base.investigate_left()=='enemy')+(base.investigate_right()=='enemy')+(base.investigate_ne()=='enemy')+(base.investigate_nw()=='enemy')+(base.investigate_se()=='enemy')+(base.investigate_sw()=='enemy')    
     if enemies_near:
-        base.DeployVirus(1200) #100 per block
+        base.DeployVirus(2400) #300 per block
         if 'H' in basesig:
             ind=basesig.index('H')+1
             basesig+=basesig[:ind]+str(max(9,2*enemies_near))+basesig[ind+1:]
