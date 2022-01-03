@@ -3,48 +3,126 @@ from random import randint
 # 1-11 are defence bots
 # 12-30 are attack bots
 
-def Refuel(robot, base_x, base_y, bot_x, bot_y, id):
+def Refuel(robot, base_x, base_y, bot_x, bot_y, id, up, down, left, right):
 	# will need base coordinates base_x,base_y and robot coordinates bot_x, bot_y
 	elixir = robot.GetElixir();
 	
-	elixirmin = 60
+	elixirmin = 50
 	elixirmax = 500
 	
 	#elixir < elixirmin or elixir < elixirmax
 
+	X, Y = robot.GetDimensionX(), robot.GetDimensionY()
+
 	if elixir < elixirmin:
-		dirn = randint(1,2)	
-		if (id%4 == 0): # Moving southeasterly
-			if dirn == 1:
-				return 2
-			else:
-				return 3
-		elif (id%4 == 1): # Moving southwesterly
-			if dirn == 1:
-				return 3
-			else:
-				return 4
-		elif (id%4 == 2): # Moving northwesterly
-			if dirn == 1:
-				return 4
-			else:
-				return 1
-		else: # Moving northeasterly
-			if dirn == 1:
-				return 1
-			else:
-				return 2
+		if id%2 == 0:	#Clockwise scanners
+			i = id//2
+			if (base_x<X/2 and base_y<Y/2):
+				if (bot_x==base_x and not(bot_y==2+3*i)):
+					if (bot_y<2+3*i and up != 'wall'):
+						return 1	#move up
+					else:
+						return 3	#move down
+				elif (bot_y==2+3*i and bot_x<X+2-3*i and right != 'wall'):
+					return 2	 #move right
+				elif (bot_x==X+2-3*i and down != 'wall'):
+					return 3	#move down
+	
+			elif (base_x>= X/2 and base_y<Y/2):
+				if (bot_y==base_x and not(bot_x==X+2-3*i)):
+					if (bot_x<X+2-3*i and right != 'wall'):
+						return 2	#move right
+					else:
+						return 4	#move left
+				elif (bot_x==X+2-3*i and bot_y<Y+2-3*i and down != 'wall'):
+					return 3	 #move down
+				elif (bot_y==Y+2-3*i and left != 'wall'):
+					return 4	#move left
+			
+			elif (base_x<X/2 and base_y>=Y/2):
+				if (bot_y==base_y and not(bot_x==2+3*i)):
+					if (bot_x<2+3*i and right != 'wall'):
+						return 2	#move right
+					else:
+						return 4	#move left
+				elif (bot_x==2+3*i and bot_y<2+3*i and up != 'wall'):
+					return 1	 #move up
+				elif (bot_y==2+3*i and right != 'wall'):
+					return 2	#move right
+			
+			elif (base_x>=X/2 and base_y>=Y/2):
+				if (bot_x==base_x and not(bot_y==Y+2-3*i)):
+					if (bot_y<Y+2-3*i and down != 'wall'):
+						return 3	#move down
+					else:
+						return 1	#move up
+				elif (bot_y==Y+2-3*i and bot_x>2+3*i and left != 'wall'):
+					return 4	 #move left
+				elif (bot_x==2+3*i and up != 'wall'):
+					return 1	#move up
+					
+		else:   #Anticlockwise scanners
+			i = id//2
+			if (base_x<X/2 and base_y<Y/2):
+				if (bot_y==base_y and not(bot_x==2+3*i)):
+					if (bot_x<2+3*i and right != 'wall'):
+						return 2	#move right
+					else:
+						 return 4	#move left
+				elif (bot_x==2+3*i and bot_y<Y+2-3*i and down != 'wall'):
+					return 3	 #move down
+				elif (bot_y==Y+2-3*i and right != 'wall'):
+					return 2	#move right
+	
+			elif (base_x>= X/2 and base_y<Y/2):
+				if (bot_x==base_x and not(bot_y==2+3*i)):
+					if (bot_y<2+3*i):
+						return 1	#move up
+					else:
+						 return 3	#move down
+				elif (bot_y==2+3*i and bot_x>2+3*i):
+					return 4	 #move left
+				elif (bot_x==2+3*i):
+					return 3	#move down
+			
+			elif (base_x<X/2 and base_y>=Y/2):
+				if (bot_x==base_x and not(bot_y==Y+2-3*i)):
+					if (bot_y<Y+2-3*i and down != 'wall'):
+						return 3	#move down
+					else:
+						 return 1	#move up
+				elif (bot_y==Y+2-3*i and bot_x<X+2-3*i and right != 'wall'):
+					return 2	 #move right
+				elif (bot_x==X+2-3*i and up != 'wall'):
+					return 1	#move up
+			
+			elif (base_x>=X/2 and base_y>=Y/2):
+				if (bot_y==base_y and not(bot_x==X+2-3*i)):
+					if (bot_x<X+2-3*i and right != 'wall'):
+						return 2	#move right
+					else:
+						 return 4	#move left
+				elif (bot_x==X+2-3*i and bot_y>2+3*i and up != 'wall'):
+					return 1	 #move up
+				elif (bot_y==2+3*i and left != 'wall'):
+					return 4	#move left
+		
+		return randint(1,4)
+		
 	else:
-		if abs(base_x - bot_x) <= 3 and abs(base_y - bot_y) <= 3:
-			return(randint(1, 4))
-		if bot_x - base_x > 3:
+		#The center of the region of patrol (patrol_x, patrol_y) should be the area right next to our base along the line joining our base and enemy base. In most cases this will be the lien joining our base with centre.
+		patrol_x = (0.70*base_x + 0.3*(X/2)) 
+		patrol_y = (0.70*base_y + 0.3*(Y/2))
+		if abs(patrol_x - bot_x) <= 3 and abs(patrol_y - bot_y) <= 3 :
+			return randint(1, 4)
+		if bot_x - patrol_x > 3:
 			return 4
-		elif bot_x - base_x < -3:
+		elif bot_x - patrol_x < -3:
 			return 2
-		if bot_y - base_y > 3:
+		if bot_y - patrol_y > 3:
 			return 1
-		elif bot_y - base_y < -3:
-				return 3
+		elif bot_y - patrol_y < -3:
+			return 3
 
 def ActRobot(robot):
 	init = robot.GetInitialSignal()
@@ -98,7 +176,7 @@ def ActRobot(robot):
 		if 'alarm' in base_signal:  #tell the base 'form' to confirm all are at corners
 			if not ('form' in base_signal):
 				if id == 1:
-					robot.setSignal('alarm')    
+					robot.setSignal('alarm')	
 				if id == 1 or id == 2:
 					if bot_x == base_x-1 and bot_y == base_y-1:
 						if id == 1:
@@ -158,7 +236,7 @@ def ActRobot(robot):
 
 
 		elif base_signal == ' ':
-			return Refuel(robot, base_x, base_y, bot_x, bot_y, id)
+			return Refuel(robot, base_x, base_y, bot_x, bot_y, id, up, down, left, right)
 
 	#else:
 	return 0
@@ -174,13 +252,13 @@ def ActBase(base):
 	for s in bot_signals:
 		if 'alarm' in s and len(signal) <= 20:
 			signal += 'alarm'
-		if ('d' in s):    #make sure that these characters dont appear in s anywhere else
+		if ('d' in s):	#make sure that these characters dont appear in s anywhere else
 			done[0] = 1
-		if ('o' in s):    #make sure that these characters dont appear in s anywhere else
+		if ('o' in s):	#make sure that these characters dont appear in s anywhere else
 			done[1] = 1
-		if ('n' in s):    #make sure that these characters dont appear in s anywhere else
+		if ('n' in s):	#make sure that these characters dont appear in s anywhere else
 			done[2] = 1
-		if ('e' in s):    #make sure that these characters dont appear in s anywhere else
+		if ('e' in s):	#make sure that these characters dont appear in s anywhere else
 			done[3] = 1
 		if 'form' in s:
 			signal += 'form'		
@@ -189,6 +267,6 @@ def ActBase(base):
 		#	signal += 'base found'
 	if done[0] == 1 and done[1]	 == 1 and done[2] == 1 and done[3] == 1:
 		signal += 'form'
-	base.SetYourSignal(signal)			    
+	base.SetYourSignal(signal)				
 
 	return
