@@ -1,8 +1,10 @@
-# CodeWars v1 : Virus Wars
+# The Holy Hand Grenade of Antioch : CodeWars v1 (Virus Wars) Runner ups
 
-Find the documentation of functions, Game Details and other instructions for India's first Bot-Programming Contest [here](https://www.notion.so/CodeWars-v1-Virus-Wars-89501f96c23d484cbdea9c76227a61d5).
+Our team is called The Holy Hand Grenade of Antioch[^1] comprised of Kartik Sreekumar Nair, Josyula Venkata Aditya, Arnav Aditya Singh and Ashwin Abraham.
+We participated in CodeWars v1 (Virus Wars) coding contest conducted by WnCC IIT Bombay in 2021-22 and the bots programmed by us
+came second overall.
 
-Have a great Introduction to Programming!
+[^1]: Since the programming was done in Python, which was named after Monty Python, we took the inspiration for our team name from [this scene](https://www.youtube.com/watch?v=xOrgLj9lOwk)
 
-![image description](logo.jpeg)
+![image description](runner_up.jpg)
 
